@@ -39,10 +39,11 @@ static ZCAddressBook *instance;
     ABMutableMultiValueRef multi = ABMultiValueCreateMutable(kABPersonPhoneProperty);    ABMultiValueAddValueAndLabel(multi, (__bridge CFTypeRef)num, (__bridge CFTypeRef)label, NULL);    ABRecordSetValue(record, kABPersonPhoneProperty, multi, &error);
     ABAddressBookRef addressBook = nil;
     // 如果为iOS6以上系统，需要等待用户确认是否允许访问通讯录。
-    if ([[UIDevice currentDevice].systemVersion floatValue] >= 6.0)    {        addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 6.0)    {
+        addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
         //等待同意后向下执行
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error)                                                 {                                                     dispatch_semaphore_signal(sema);                                                 });
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);         dispatch_release(sema);
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }else{
         addressBook = ABAddressBookCreate();     }
     // 将新建联系人记录添加如通讯录中
@@ -61,7 +62,7 @@ static ZCAddressBook *instance;
         addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
         //等待同意后向下执行
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error)                                                 {                                                     dispatch_semaphore_signal(sema);                                                 });
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);         dispatch_release(sema);
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }else{
         addressBook = ABAddressBookCreate();
     }
@@ -100,7 +101,7 @@ static ZCAddressBook *instance;
         addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
         //等待同意后向下执行
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error)                                                 {                                                     dispatch_semaphore_signal(sema);                                                 });
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);         dispatch_release(sema);
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }else{
         addressBook = ABAddressBookCreate();
     }
@@ -116,13 +117,13 @@ static ZCAddressBook *instance;
         NSMutableDictionary *dicInfoLocal = [NSMutableDictionary dictionaryWithCapacity:0];
         ABRecordRef person = CFArrayGetValueAtIndex(results, i);
         //读取firstname
-        NSString *first = (NSString*)ABRecordCopyValue(person, kABPersonFirstNameProperty);
+        NSString *first = (__bridge NSString*)ABRecordCopyValue(person, kABPersonFirstNameProperty);
         if (first==nil) {
             first = @" ";
         }
         [dicInfoLocal setObject:first forKey:@"first"];
         
-        NSString *last = (NSString *)ABRecordCopyValue(person, kABPersonLastNameProperty);
+        NSString *last = (__bridge NSString *)ABRecordCopyValue(person, kABPersonLastNameProperty);
         if (last == nil) {
             last = @" ";
         }
@@ -132,7 +133,7 @@ static ZCAddressBook *instance;
         
         
         ABMultiValueRef tmlphone =  ABRecordCopyValue(person, kABPersonPhoneProperty);
-        NSString* telphone = (NSString*)ABMultiValueCopyValueAtIndex(tmlphone, 0);
+        NSString* telphone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(tmlphone, 0);
         if (telphone == nil) {
             telphone = @" ";
         }
@@ -268,7 +269,6 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
         //打开短信视图控制器
         [self.target presentViewController:messageViewController animated:YES completion:nil];
         
-        [messageViewController release];
     }
     
     
@@ -291,7 +291,6 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
         ABPeoplePickerNavigationController *peoplePicker = [[ABPeoplePickerNavigationController alloc] init];
         peoplePicker.peoplePickerDelegate = self;
         [self.target presentViewController:peoplePicker animated:YES completion:nil];
-        [peoplePicker release];
         
     }
     
@@ -329,11 +328,11 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
      ABMutableMultiValueRef _URL=ABRecordCopyValue(person, kABPersonURLProperty);
      */
     
-    NSString* firstName=(NSString*)ABRecordCopyValue(person, kABPersonFirstNameProperty);
+    NSString* firstName=(__bridge NSString*)ABRecordCopyValue(person, kABPersonFirstNameProperty);
     if (firstName==nil) {
         firstName = @" ";
     }
-    NSString* lastName=(NSString*)ABRecordCopyValue(person, kABPersonLastNameProperty);
+    NSString* lastName=(__bridge NSString*)ABRecordCopyValue(person, kABPersonLastNameProperty);
     if (lastName==nil) {
         lastName = @" ";
     }
@@ -341,7 +340,7 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
     
     for (int i = 0; i < ABMultiValueGetCount(phoneMulti); i++) {
         
-        NSString *aPhone = [(NSString*)ABMultiValueCopyValueAtIndex(phoneMulti, i) autorelease];
+        NSString *aPhone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(phoneMulti, i);
         
         [phones addObject:aPhone];
         

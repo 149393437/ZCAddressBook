@@ -5,7 +5,7 @@
 //  Created by ZhangCheng on 14-4-19.
 //  Copyright (c) 2014年 zhangcheng. All rights reserved.
 //
-//版本说明 iOS研究院 305044955
+//版本说明 iOS中国开发者2群 305044955
 /*
  2014.4 18
  1.2版本 ZC封装的自定义通讯录界面
