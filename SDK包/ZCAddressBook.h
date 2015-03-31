@@ -5,8 +5,11 @@
 //  Created by ZhangCheng on 14-4-19.
 //  Copyright (c) 2014年 zhangcheng. All rights reserved.
 //
-//版本说明 iOS中国开发者2群 305044955
+//版本说明 iOS研究院 305044955
 /*
+ 2015.3.13
+ 1.3版本 解决iOS8
+ iOS8变更了代理方法，导致点击系统通讯录无法获取回调
  2014.4 18
  1.2版本 ZC封装的自定义通讯录界面
  1、解决了iOS7下无数据的问题，增加判断版本
@@ -73,7 +76,6 @@ enum {
 };typedef NSUInteger ABHelperCheckExistResultType;
 @interface ZCAddressBook : NSObject<MFMessageComposeViewControllerDelegate,ABPeoplePickerNavigationControllerDelegate>
 {
-
 }
 //保存排序好的数组index
 @property(nonatomic,retain)NSMutableArray*dataArray;

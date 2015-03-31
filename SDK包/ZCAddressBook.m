@@ -39,8 +39,7 @@ static ZCAddressBook *instance;
     ABMutableMultiValueRef multi = ABMultiValueCreateMutable(kABPersonPhoneProperty);    ABMultiValueAddValueAndLabel(multi, (__bridge CFTypeRef)num, (__bridge CFTypeRef)label, NULL);    ABRecordSetValue(record, kABPersonPhoneProperty, multi, &error);
     ABAddressBookRef addressBook = nil;
     // 如果为iOS6以上系统，需要等待用户确认是否允许访问通讯录。
-    if ([[UIDevice currentDevice].systemVersion floatValue] >= 6.0)    {
-        addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 6.0)    {        addressBook = ABAddressBookCreateWithOptions(NULL, NULL);
         //等待同意后向下执行
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error)                                                 {                                                     dispatch_semaphore_signal(sema);                                                 });
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
@@ -288,7 +287,9 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
     if (self=[super init]) {
         self.target=target;
         self.PhoneBlock=a;
-        ABPeoplePickerNavigationController *peoplePicker = [[ABPeoplePickerNavigationController alloc] init];
+        
+       ABPeoplePickerNavigationController * peoplePicker = [[ABPeoplePickerNavigationController alloc] init];
+       
         peoplePicker.peoplePickerDelegate = self;
         [self.target presentViewController:peoplePicker animated:YES completion:nil];
         
@@ -296,6 +297,69 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
     
     return self;
 }
+#pragma mark iOS8点击详情进入的
+-(void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier
+{
+
+}
+#pragma mark iOS8点击联系人进入的
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController*)peoplePicker didSelectPerson:(ABRecordRef)person
+{
+    
+    ABMutableMultiValueRef phoneMulti = ABRecordCopyValue(person, kABPersonPhoneProperty);
+    //获得选中Vcard相应信息
+    /*
+     ABMutableMultiValueRef address=ABRecordCopyValue(person, kABPersonAddressProperty);
+     ABMutableMultiValueRef birthday=ABRecordCopyValue(person, kABPersonBirthdayProperty);
+     ABMutableMultiValueRef creationDate=ABRecordCopyValue(person, kABPersonCreationDateProperty);
+     ABMutableMultiValueRef date=ABRecordCopyValue(person, kABPersonDateProperty);
+     ABMutableMultiValueRef department=ABRecordCopyValue(person, kABPersonDepartmentProperty);
+     ABMutableMultiValueRef email=ABRecordCopyValue(person, kABPersonEmailProperty);
+     ABMutableMultiValueRef firstNamePhonetic=ABRecordCopyValue(person, kABPersonFirstNamePhoneticProperty);
+     
+     ABMutableMultiValueRef instantMessage=ABRecordCopyValue(person, kABPersonInstantMessageProperty);
+     ABMutableMultiValueRef jobTitle=ABRecordCopyValue(person, kABPersonJobTitleProperty);
+     ABMutableMultiValueRef kind=ABRecordCopyValue(person, kABPersonKindProperty);
+     ABMutableMultiValueRef lastNamePhonetic=ABRecordCopyValue(person, kABPersonLastNamePhoneticProperty);
+     ABMutableMultiValueRef middleNamePhonetic=ABRecordCopyValue(person, kABPersonMiddleNamePhoneticProperty);
+     ABMutableMultiValueRef middleName=ABRecordCopyValue(person, kABPersonMiddleNameProperty);
+     ABMutableMultiValueRef modificationDate=ABRecordCopyValue(person, kABPersonModificationDateProperty);
+     ABMutableMultiValueRef nickname=ABRecordCopyValue(person, kABPersonNicknameProperty);
+     ABMutableMultiValueRef note=ABRecordCopyValue(person, kABPersonNoteProperty);
+     ABMutableMultiValueRef organization=ABRecordCopyValue(person, kABPersonOrganizationProperty);
+     ABMutableMultiValueRef phone=ABRecordCopyValue(person, kABPersonPhoneProperty);
+     ABMutableMultiValueRef prefix=ABRecordCopyValue(person, kABPersonPrefixProperty);
+     ABMutableMultiValueRef relatedNames=ABRecordCopyValue(person, kABPersonRelatedNamesProperty);
+     ABMutableMultiValueRef socialProfile=ABRecordCopyValue(person, kABPersonSocialProfileProperty);
+     ABMutableMultiValueRef personSuffix=ABRecordCopyValue(person, kABPersonSuffixProperty);
+     ABMutableMultiValueRef _URL=ABRecordCopyValue(person, kABPersonURLProperty);
+     */
+    
+    NSString* firstName=(__bridge NSString*)ABRecordCopyValue(person, kABPersonFirstNameProperty);
+    if (firstName==nil) {
+        firstName = @" ";
+    }
+    NSString* lastName=(__bridge NSString*)ABRecordCopyValue(person, kABPersonLastNameProperty);
+    if (lastName==nil) {
+        lastName = @" ";
+    }
+    NSMutableArray *phones = [NSMutableArray arrayWithCapacity:0];
+    
+    for (int i = 0; i < ABMultiValueGetCount(phoneMulti); i++) {
+        
+        NSString *aPhone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(phoneMulti, i) ;
+        
+        [phones addObject:aPhone];
+        
+    }
+    NSDictionary*dic=@{@"firstName": firstName,@"lastName":lastName,@"phones":phones};
+    
+    self.PhoneBlock(YES,dic);
+    
+    [self.target dismissViewControllerAnimated:YES completion:nil];
+
+}
+#pragma mark iOS7方法
 -(BOOL)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker shouldContinueAfterSelectingPerson:(ABRecordRef)person
 {
     
@@ -340,7 +404,7 @@ NSInteger cmp(NSString * a, NSString* b, void * p)
     
     for (int i = 0; i < ABMultiValueGetCount(phoneMulti); i++) {
         
-        NSString *aPhone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(phoneMulti, i);
+        NSString *aPhone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(phoneMulti, i) ;
         
         [phones addObject:aPhone];
         
