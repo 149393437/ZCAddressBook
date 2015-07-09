@@ -132,12 +132,20 @@ static ZCAddressBook *instance;
         
         
         ABMultiValueRef tmlphone =  ABRecordCopyValue(person, kABPersonPhoneProperty);
-        NSString* telphone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(tmlphone, 0);
-        if (telphone == nil) {
-            telphone = @" ";
+//        NSString* telphone = (__bridge NSString*)ABMultiValueCopyValueAtIndex(tmlphone, 0);
+        
+       NSArray*telphoneArray= (__bridge NSArray*)ABMultiValueCopyArrayOfAllValues(tmlphone);
+        NSMutableArray*array=[NSMutableArray array];
+        for (NSString* telphone in telphoneArray) {
+            if (telphone == nil) {
+                telphone = @" ";
+            }
+            [array addObject:telphone];
+
         }
-        [dicInfoLocal setObject:telphone forKey:@"telphone"];
-        CFRelease(tmlphone);
+        
+        [dicInfoLocal setObject:array forKey:@"telphone"];
+        CFRelease(telphoneArray);
         /*
          //获取的联系人单一属性:Email(s)
          
