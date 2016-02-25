@@ -7,6 +7,9 @@
 //
 //版本说明 iOS研究院 305044955
 /*
+ 2016.2.25
+ 1.5版本 统一了初始化方式为单例方式,在iOS9下调用新库Contacts
+ 
  2015.7.19
  1.4版本 修改获取同一个联系人下获取多个电话，telphone字段变更为数组
  2015.3.13
@@ -37,12 +40,12 @@
  NSArray*array=[[ZCAddressBook shareControl]sortMethod];
  
  //发送短信,群发，可以有指定内容
- [[ZCAddressBook alloc]initWithTarget:self MessageNameArray:@[@"13811928431"] Message:@"发送消息的内容" Block:^(int type) {
- NSLog(@"发送短信后的状态");
+ [[ZCAddressBook shareControl]showSystemMessageToListArray:@[@"13811928431"] Message:[NSString stringWithFormat:@"%@正在使用你的库文件",[[UIDevice currentDevice] systemName]] ViewController:self Block:^(int a) {
+ NSLog(@"%d",a);
  }];
  //调用系统控件，选中后获得指定人信息
- [[ZCAddressBook alloc]initWithTarget:self PhoneView:^(BOOL isSucceed, NSDictionary *dic) {
- NSLog(@"从系统中获得指定联系人的信息%@",dic);
+ [[ZCAddressBook shareControl]showPhoneViewWithTarget:self Block:^(BOOL isSuccess, NSDictionary *dic) {
+ NSLog(@"从系统中获取通讯录~~~%@",dic);
  }];
  
  //跳出程序进行发送短信
@@ -70,15 +73,31 @@
  */
 
 #import <Foundation/Foundation.h>
-//调用系统的控件
+//短信库
 #import <MessageUI/MessageUI.h>
+
+//通讯录UI库
+#import <AddressBook/AddressBook.h>
+//通讯录库
 #import <AddressBookUI/AddressBookUI.h>
+
+//iOS9通讯录库
+#import <Contacts/Contacts.h>
+//iOS9UI的库
+#import <ContactsUI/ContactsUI.h>
+
+#define kiOS9 [[UIDevice currentDevice].systemVersion floatValue]>=9.0
 enum {
-    ABHelperCanNotConncetToAddressBook,   ABHelperExistSpecificContact,    ABHelperNotExistSpecificContact
+    ABHelperCanNotConncetToAddressBook,
+    ABHelperExistSpecificContact,
+    ABHelperNotExistSpecificContact
 };typedef NSUInteger ABHelperCheckExistResultType;
-@interface ZCAddressBook : NSObject<MFMessageComposeViewControllerDelegate,ABPeoplePickerNavigationControllerDelegate>
-{
-}
+
+@interface ZCAddressBook : NSObject<MFMessageComposeViewControllerDelegate,ABPeoplePickerNavigationControllerDelegate,CNContactPickerDelegate>
+
+@property(nonatomic,assign) id target;
+@property(nonatomic,copy)void(^MessageBlock)(int);
+@property(nonatomic,copy)void(^PhoneBlock)(BOOL,NSDictionary*);
 //保存排序好的数组index
 @property(nonatomic,retain)NSMutableArray*dataArray;
 //数组里面保存每个获取Vcard（名片）
@@ -89,9 +108,6 @@ enum {
 #pragma  mark  添加联系人
 - (BOOL)addContactName:(NSString*)name phoneNum:(NSString*)num withLabel:(NSString*)label;
 
-#pragma mark 查找通讯录中是否有这个联系人
-- (ABHelperCheckExistResultType)existPhone:(NSString*)phoneNum;
-
 #pragma mark 获取Vcard
 -(NSMutableDictionary*)getPersonInfo;
 
@@ -99,16 +115,15 @@ enum {
 
 -(NSArray*)sortMethod;
 
-
-#pragma -------------使用系统方式发送短信，或者获得联系人 以下方法不能够使用单例进行，有UI操作
-
-@property(nonatomic,assign) id target;
-@property(nonatomic,copy)void(^MessageBlock)(int);
-@property(nonatomic,copy)void(^PhoneBlock)(BOOL,NSDictionary*);
 #pragma mark 发送短信界面 调用系统控件 需要真机才能显示
--(id)initWithTarget:(id)target MessageNameArray:(NSArray*)array Message:(NSString*)str Block:(void (^)(int))a;
-#pragma mark-------- 使用系统方式进行发送短信，但是短信内容无法规定,会跳出程序 phoneNum传入数字
+-(void)showSystemMessageToListArray:(NSArray*)array Message:(NSString*)str ViewController:(id)target Block:(void(^)(int))a;
+
+#pragma mark 使用系统方式进行发送短信，但是短信内容无法规定,会跳出程序 phoneNum传入数字
 +(void)sendMessage:(NSString*)phoneNum;
+
 #pragma mark 联系人界面 调用的系统控件
--(id)initWithTarget:(id)target PhoneView:(void (^)(BOOL, NSDictionary*))a;
+-(void)showPhoneViewWithTarget:(id)target Block:(void(^)(BOOL,NSDictionary*))a;
+
+#pragma mark 查找通讯录中是否有这个联系人
+- (ABHelperCheckExistResultType)existPhone:(NSString*)phoneNum;
 @end
